@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Plus Jakarta Sans", "Noto Sans TC", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    background-color: #090b0e;
+    color: #f1f5f9;
+    color-scheme: dark;
+  }
+
+  /* Tabular numerals across all financial and statistical displays */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Subtle dark scrollbar for trading terminal tables and panels */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #090b0e;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #232b36;
+    border-radius: 2px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #334155;
+  }
+}
+
+/* Custom range slider for numeric input precision */
+input[type="range"].hy-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  background: #1e2631;
+  border-radius: 2px;
+  outline: none;
+}
+
+input[type="range"].hy-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 2px;
+  background: #e2e8f0;
+  border: 1px solid #090b0e;
+  cursor: pointer;
+}
+
+input[type="range"].hy-slider::-webkit-slider-thumb:hover {
+  background: #ffffff;
+}
