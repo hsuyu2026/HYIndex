@@ -44,7 +44,7 @@ export interface HabitDefinition {
     | 'alarm-clock';
 }
 
-export const FORMULA_VERSION = '1.1.3';
+export const FORMULA_VERSION = '1.1.4';
 
 // Centralized HY Index parameters (fixed, never auto-adjusted by daily scores or weekly settlements)
 export const BASELINE_SCORE = 50;

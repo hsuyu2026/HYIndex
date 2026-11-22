@@ -9,6 +9,8 @@ import {
   ChevronDown,
   ChevronUp,
   Clock,
+  Eye,
+  EyeOff,
   Moon,
   Plus,
   RotateCcw,
@@ -121,6 +123,7 @@ export function DailyRecordPage() {
   const [newNeedInput, setNewNeedInput] = useState('');
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [showPreviewData, setShowPreviewData] = useState(false);
 
   const logicalDate = useMemo(() => {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return date;
@@ -209,6 +212,19 @@ export function DailyRecordPage() {
     const hy = dt !== null ? priorHyBeforeDate + dailyChange : priorHyBeforeDate;
     return { s, hp, h, st, dt, dailyChange, hy };
   }, [effectiveDayHabits, metrics, priorHyBeforeDate]);
+
+  // Previous chronological record before the current form date/time (excluding the record being edited)
+  const previousRecord = useMemo(() => {
+    const currentKey = `${date} ${time || '23:59'}`;
+    const sortedOthers = records
+      .filter((r) => r.id !== editingRecordId)
+      .sort((a, b) => `${b.date} ${b.time}`.localeCompare(`${a.date} ${a.time}`));
+
+    if (editingRecordId) {
+      return sortedOthers.find((r) => `${r.date} ${r.time}` < currentKey) || null;
+    }
+    return sortedOthers.find((r) => `${r.date} ${r.time}` <= currentKey) || null;
+  }, [date, time, editingRecordId, records]);
 
   const customEmotionOnly = useMemo(
     () => config.customEmotionTags.filter((t) => !DEFAULT_EMOTION_TAGS.includes(t)),
@@ -436,53 +452,105 @@ export function DailyRecordPage() {
           )}
         </div>
 
-        <div className="lg:col-span-7 border border-[#1E2530] bg-[#0E1218] rounded p-4 grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs">
-          <div>
-            <div className="text-[#64748B]">本筆狀態 S</div>
-            <div className="font-mono tabular-nums text-lg font-semibold text-white mt-1">
-              {previewCalc.s !== null ? previewCalc.s.toFixed(2) : '未計分'}
-            </div>
-          </div>
-          <div>
-            <div className="text-[#64748B]">當日習慣 H</div>
-            <div className="font-mono tabular-nums text-lg font-semibold text-white mt-1">
-              {previewCalc.h !== null ? previewCalc.h.toFixed(2) : '未勾選'}
-            </div>
-          </div>
-          <div>
-            <div className="text-[#64748B]">綜合分數 St</div>
-            <div className="font-mono tabular-nums text-lg font-semibold text-white mt-1">
-              {previewCalc.st !== null ? previewCalc.st.toFixed(2) : '--'}
-            </div>
-          </div>
-          <div>
-            <div className="text-[#64748B]">偏離 (St-{BASELINE_SCORE})</div>
-            <div
-              className={`font-mono tabular-nums text-lg font-semibold mt-1 ${
-                timestampClosed
-                  ? 'text-[#64748B]'
-                  : getDirectionTone(previewCalc.dt).textClass
-              }`}
+        <div className="lg:col-span-7 border border-[#1E2530] bg-[#0E1218] rounded p-4 flex flex-col justify-between gap-3 text-xs">
+          <div className="flex items-center justify-between gap-2 border-b border-[#1E2530]/80 pb-2">
+            <span className="text-[#94A3B8]">即時試算數據預覽</span>
+            <button
+              type="button"
+              onClick={() => setShowPreviewData((v) => !v)}
+              aria-pressed={showPreviewData}
+              className="px-2.5 py-1 border border-[#2B3544] bg-[#090B0E] hover:border-[#475569] text-[#CBD5E1] hover:text-white rounded-sm inline-flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap shrink-0"
             >
-              {timestampClosed
-                ? '不計'
-                : previewCalc.dt !== null
-                  ? formatSigned(previewCalc.dt, 2)
-                  : '--'}
-            </div>
+              {showPreviewData ? (
+                <>
+                  <EyeOff className="w-3.5 h-3.5" />
+                  <span>隱藏數據</span>
+                </>
+              ) : (
+                <>
+                  <Eye className="w-3.5 h-3.5" />
+                  <span>顯示數據</span>
+                </>
+              )}
+            </button>
           </div>
-          <div>
-            <div className="text-[#64748B]">
-              {timestampClosed ? '休市維持前值' : '預估累積 HY'}
+
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+            <div>
+              <div className="text-[#64748B]">本筆狀態 S</div>
+              <div className="font-mono tabular-nums text-lg font-semibold text-white mt-1">
+                {!showPreviewData ? (
+                  <span className="text-[#475569]">••••</span>
+                ) : previewCalc.s !== null ? (
+                  previewCalc.s.toFixed(2)
+                ) : (
+                  '未計分'
+                )}
+              </div>
             </div>
-            <div
-              className={`font-mono tabular-nums text-lg font-bold mt-1 ${
-                timestampClosed
-                  ? 'text-[#64748B]'
-                  : getDirectionTone(previewCalc.dt).textClass
-              }`}
-            >
-              {timestampClosed ? formatIndex(priorHyBeforeDate) : formatIndex(previewCalc.hy)}
+            <div>
+              <div className="text-[#64748B]">當日習慣 H</div>
+              <div className="font-mono tabular-nums text-lg font-semibold text-white mt-1">
+                {!showPreviewData ? (
+                  <span className="text-[#475569]">••••</span>
+                ) : previewCalc.h !== null ? (
+                  previewCalc.h.toFixed(2)
+                ) : (
+                  '未勾選'
+                )}
+              </div>
+            </div>
+            <div>
+              <div className="text-[#64748B]">綜合分數 St</div>
+              <div className="font-mono tabular-nums text-lg font-semibold text-white mt-1">
+                {!showPreviewData ? (
+                  <span className="text-[#475569]">••••</span>
+                ) : previewCalc.st !== null ? (
+                  previewCalc.st.toFixed(2)
+                ) : (
+                  '--'
+                )}
+              </div>
+            </div>
+            <div>
+              <div className="text-[#64748B]">偏離 (St-{BASELINE_SCORE})</div>
+              <div
+                className={`font-mono tabular-nums text-lg font-semibold mt-1 ${
+                  !showPreviewData || timestampClosed
+                    ? 'text-[#64748B]'
+                    : getDirectionTone(previewCalc.dt).textClass
+                }`}
+              >
+                {!showPreviewData ? (
+                  <span className="text-[#475569]">••••</span>
+                ) : timestampClosed ? (
+                  '不計'
+                ) : previewCalc.dt !== null ? (
+                  formatSigned(previewCalc.dt, 2)
+                ) : (
+                  '--'
+                )}
+              </div>
+            </div>
+            <div>
+              <div className="text-[#64748B]">
+                {timestampClosed ? '休市維持前值' : '預估累積 HY'}
+              </div>
+              <div
+                className={`font-mono tabular-nums text-lg font-bold mt-1 ${
+                  !showPreviewData || timestampClosed
+                    ? 'text-[#64748B]'
+                    : getDirectionTone(previewCalc.dt).textClass
+                }`}
+              >
+                {!showPreviewData ? (
+                  <span className="text-[#475569]">••••</span>
+                ) : timestampClosed ? (
+                  formatIndex(priorHyBeforeDate)
+                ) : (
+                  formatIndex(previewCalc.hy)
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -501,6 +569,9 @@ export function DailyRecordPage() {
           {AXIS_DEFINITIONS.map((axis) => {
             const val = metrics[axis.key];
             const isFilled = val !== null;
+            const prevVal = previousRecord ? previousRecord.metrics[axis.key] : null;
+            const hasPrevVal =
+              typeof prevVal === 'number' && !Number.isNaN(prevVal) && prevVal >= 0 && prevVal <= 100;
             return (
               <div
                 key={axis.key}
@@ -528,16 +599,38 @@ export function DailyRecordPage() {
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    step="1"
-                    value={val ?? 50}
-                    onChange={(e) => handleAxisInput(axis.key, e.target.value)}
-                    aria-label={`${axis.label} 滑桿`}
-                    className="hy-slider flex-1"
-                  />
+                  <div className="relative flex-1 flex items-center pb-5 pt-1">
+                    {hasPrevVal && (
+                      <>
+                        <span
+                          aria-hidden="true"
+                          style={{
+                            left: `calc(7px + (100% - 14px) * ${prevVal / 100})`,
+                          }}
+                          className="pointer-events-none absolute top-1/2 -translate-y-[calc(50%+8px)] -translate-x-1/2 w-2 h-3.5 rounded-[1px] border border-[#CBD5E1]/50 bg-[#94A3B8]/35 z-20"
+                        />
+                        <span
+                          style={{
+                            left: `calc(7px + (100% - 14px) * ${prevVal / 100})`,
+                            transform: `translateX(-${prevVal}%)`,
+                          }}
+                          className="pointer-events-none absolute bottom-0 text-[10px] font-mono tabular-nums text-[#CBD5E1]/60 bg-[#11161E]/75 border border-[#334155]/45 px-1.5 py-0.5 rounded-[2px] whitespace-nowrap leading-none"
+                        >
+                          上一筆 {prevVal}
+                        </span>
+                      </>
+                    )}
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      step="1"
+                      value={val ?? 50}
+                      onChange={(e) => handleAxisInput(axis.key, e.target.value)}
+                      aria-label={`${axis.label} 滑桿`}
+                      className="hy-slider w-full relative z-10"
+                    />
+                  </div>
                   <input
                     type="number"
                     min="0"

@@ -145,7 +145,7 @@ export async function loadAllData(): Promise<{
   if (rawConfig && rawConfig.formulaVersion !== FORMULA_VERSION) {
     const prevVer = rawConfig.formulaVersion || 'unknown';
     // Only snapshot & notify formula-breaking migration from pre-v1.2.0 versions
-    if (prevVer !== '1.2.0' && prevVer !== '1.3.0' && prevVer !== '1.1.2' && prevVer !== '1.1.3') {
+    if (prevVer !== '1.2.0' && prevVer !== '1.3.0' && prevVer !== '1.1.2' && prevVer !== '1.1.3' && prevVer !== '1.1.4') {
       migratedFromVersion = prevVer;
       try {
         if (typeof window !== 'undefined' && window.localStorage) {
